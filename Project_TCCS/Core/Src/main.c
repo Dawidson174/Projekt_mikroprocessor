@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "lwip.h"
+#include "lwip/netif.h"
+#include <stdio.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -55,6 +57,9 @@ static void MX_GPIO_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+/* USER CODE BEGIN 0 */
+
+/* USER CODE END 0 */
 
 /* USER CODE END 0 */
 
@@ -90,6 +95,9 @@ int main(void)
   MX_LWIP_Init();
   /* USER CODE BEGIN 2 */
   httpd_init();
+  HAL_Delay(5000);       // Wait for DHCP to assign an IP (if using DHCP)
+  print_ip_address();    // Print the IP address to the console
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -97,6 +105,7 @@ int main(void)
   while (1)
   {
 	  MX_LWIP_Process(); //obsługa stosu lwIP
+	  sys_check_timeouts();     // Process LWIP timeouts
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -245,6 +254,17 @@ void Control_LED(const char *state)
     else if (strcmp(state, "off") == 0)
     {
         HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, GPIO_PIN_RESET); // Wyłącz LED
+    }
+}
+
+void print_ip_address(void) {
+    struct netif *netif = netif_default; // Get the default network interface
+    if (netif != NULL) {
+        printf("IP Address: %s\n", ip4addr_ntoa(netif_ip4_addr(netif)));
+        printf("Netmask: %s\n", ip4addr_ntoa(netif_ip4_netmask(netif)));
+        printf("Gateway: %s\n", ip4addr_ntoa(netif_ip4_gw(netif)));
+    } else {
+        printf("Network interface not initialized!\n");
     }
 }
 
